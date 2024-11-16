@@ -39,7 +39,17 @@ public class MainActivity extends AppCompatActivity {
         btnDeleteOrder = findViewById(R.id.btnDeleteOrder);
         orderList = findViewById(R.id.ordersList);
 
+        // El campo de texto ID no será accesible, debido a que la id se ingresará
+        // gracias al evento onItemClick de la listView.
+        txtOrderID.setEnabled(false);
+
         seeOrders(); // Carga los pedidos de la base de datos
+
+        // Desactivamos los botones ELIMINAR y ACTUALIZAR al arrancar la aplicación
+        // (esto debido a que solo se habilitan cuando presionas un elemento de la listView).
+        btnUpdateOrder.setEnabled(false);
+        btnDeleteOrder.setEnabled(false);
+
 
         orderList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -74,6 +84,14 @@ public class MainActivity extends AppCompatActivity {
                         txtClientName.setText(parteCliente);
                         txtFoodName.setText(parteComida);
                         txtOrderPrice.setText(partePrecio);
+
+                        // Habilitamos los botones para ACTUALIZAR y ELIMINAR
+                        btnUpdateOrder.setEnabled(true);
+                        btnDeleteOrder.setEnabled(true);
+
+                        // Deshabilitamos el botón para GUARDAR pedidos.
+                        btnSaveOrder.setEnabled(false);
+
                     } else {
                         Toast.makeText(MainActivity.this, "El formato del elemento no es válido", Toast.LENGTH_SHORT).show();
                     }
@@ -146,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 String food = fila.getString(2);
                 String price = fila.getString(3);
 
-                String orderInfo = "ID: "+id+", Cliente: "+client+", Comida: "+food+", Precio: $"+price;
+                String orderInfo = "ID: "+id+", Cliente: "+client+", Orden: "+food+", Precio: $"+price;
                 registros.add(orderInfo);
             } while (fila.moveToNext());
         }
@@ -157,6 +175,125 @@ public class MainActivity extends AppCompatActivity {
         orderList.setAdapter(adapter);
 
         db.close(); // cerramos la conexión
+    }
+
+    public void updateOrder(View view){
+        // Conexión de SQLite con la base de datos creada
+        AdminSQLite admin = new AdminSQLite(this, "MCDONNALS", null, 1);
+        // Obtenemos los datos de la Conexión
+        SQLiteDatabase db = admin.getWritableDatabase();
+
+        // Validamos que los campos NO esten vacíos
+        if(txtClientName.getText().toString().isEmpty()
+           && txtFoodName.getText().toString().isEmpty()
+           && txtOrderPrice.getText().toString().isEmpty()
+           && txtOrderID.getText().toString().isEmpty())
+        {
+            Toast.makeText(this, "Rellene los campos", Toast.LENGTH_SHORT).show();
+        } else {
+            // Extraemos las variables del formulario
+            String client = txtClientName.getText().toString();
+            String food = txtFoodName.getText().toString();
+            Double price = Double.parseDouble(txtOrderPrice.getText().toString());
+            String id = txtOrderID.getText().toString();
+
+            // Array de datos que almacenará los datos para realizar el INSERT
+            ContentValues orderData = new ContentValues();
+
+            // Insertamos los datos en el Array de datos creado
+            orderData.put("NOMBRE_CLIENTE", client);
+            orderData.put("COMIDA", food);
+            orderData.put("PRECIO", price);
+
+            int cantidadUpdateada = db.update("MCDONNALS", orderData, "ID_PEDIDO = "+id, null);
+
+            if(cantidadUpdateada == 1){
+                Toast.makeText(this, "Pedido actualizado éxitosamente", Toast.LENGTH_SHORT).show();
+
+                // Limpiamos los campos
+                txtClientName.setText("");
+                txtFoodName.setText("");
+                txtOrderPrice.setText("");
+                txtOrderID.setText("");
+
+                // Volvemos a habilitar el botón para guardar pedidos
+                btnSaveOrder.setEnabled(true);
+
+                // Deshabilitamos los botones para ACTUALIZAR y ELIMINAR
+                btnUpdateOrder.setEnabled(false);
+                btnDeleteOrder.setEnabled(false);
+
+                seeOrders(); // Actualiza la lista de pedidos
+            } else {
+                Toast.makeText(this, "No se actualizó el pedido", Toast.LENGTH_SHORT).show();
+
+                // Limpiamos los campos
+                txtClientName.setText("");
+                txtFoodName.setText("");
+                txtOrderPrice.setText("");
+                txtOrderID.setText("");
+
+                // Volvemos a habilitar el botón para guardar pedidos
+                btnSaveOrder.setEnabled(true);
+
+                // Deshabilitamos los botones para ACTUALIZAR y ELIMINAR
+                btnUpdateOrder.setEnabled(false);
+                btnDeleteOrder.setEnabled(false);
+            }
+        }
+        db.close(); // Cerramos la conexión
+    }
+
+    public void deleteOrder(View view){
+        // Conexión de SQLite con la base de datos creada
+        AdminSQLite admin = new AdminSQLite(this, "MCDONNALS", null, 1);
+        // Obtenemos los datos de la Conexión
+        SQLiteDatabase db = admin.getWritableDatabase();
+
+        // Validamos que los campos NO esten vacíos
+        if(txtOrderID.getText().toString().isEmpty()) {
+            Toast.makeText(this, "Seleccione un elemento a eliminar", Toast.LENGTH_SHORT).show();
+        } else {
+            // Extraemos las variables del formulario
+            String id = txtOrderID.getText().toString();
+
+            int cantidadDeleteada = db.delete("MCDONNALS", "ID_PEDIDO = "+id, null);
+
+            if(cantidadDeleteada == 1){
+                Toast.makeText(this, "Pedido eliminado éxitosamente", Toast.LENGTH_SHORT).show();
+
+                // Limpiamos los campos
+                txtClientName.setText("");
+                txtFoodName.setText("");
+                txtOrderPrice.setText("");
+                txtOrderID.setText("");
+
+                // Volvemos a habilitar el botón para guardar pedidos
+                btnSaveOrder.setEnabled(true);
+
+                // Deshabilitamos los botones para ACTUALIZAR y ELIMINAR
+                btnUpdateOrder.setEnabled(false);
+                btnDeleteOrder.setEnabled(false);
+
+                seeOrders(); // Actualiza la lista de pedidos
+            } else {
+                Toast.makeText(this, "No se eliminó el pedido", Toast.LENGTH_SHORT).show();
+
+                // Limpiamos los campos
+                txtClientName.setText("");
+                txtFoodName.setText("");
+                txtOrderPrice.setText("");
+                txtOrderID.setText("");
+
+                // Volvemos a habilitar el botón para guardar pedidos
+                btnSaveOrder.setEnabled(true);
+
+                // Deshabilitamos los botones para ACTUALIZAR y ELIMINAR
+                btnUpdateOrder.setEnabled(false);
+                btnDeleteOrder.setEnabled(false);
+            }
+        }
+        db.close(); // Cerramos la conexión
     }
 
 }

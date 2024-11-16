@@ -115,6 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#FF2D2D"
+            android:onClick="updateOrder"
             android:text="Actualizar pedido"
             android:textColor="#FFEB33" />
 
@@ -123,6 +124,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#FF2D2D"
+            android:onClick="deleteOrder"
             android:text="eliminar pedido"
             android:textColor="#FFEB33" />
 
